@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <p>Login Name: {{ request.user.username }}</p>
+    <title>Admin Panel</title>
+</head>
+    
+    <style>
+
+	table {
+	  width: 100%;  
+	  border-collapse: collapse;	  
+    }
+	
+    th, td {
+	  border: 2px solid blue;
+      padding: 6px;
+      width: 30px;
+      height: 30px;
+	  text-align: center;	  
+	  vertical-align: middle;
+	  font-size: 20px;	  
+	  background-color: cyan;
+    }
+	
+	/* CSS for responsive design */
+    @media screen and (max-width: 600px) {
+    /* Adjust the table layout for small screens */
+    th, td {
+		display: block;
+        }
+	th {
+        text-align: center;
+        }
+    }
+    
+    @keyframes blink {
+    	0%, 100% {
+		  background-color: cyan;
+		}
+		50% {
+		  background-color: red;
+		  color: white;
+		}
+    
+    </style>
+
+    <body>
+    
+        <form method="post">
+        {% csrf_token %}
+                
+        <label for="inputBox" style="display: inline-block; font-weight: bold; padding-right: 10px;">Search Bearing Code:</label>	
+    	<input type="text" name="bearingCd" id="bearingCd"  size="3" placeholder="Enter code here..." onfocusout="highlightTable()"/>
+    	&nbsp;&nbsp;	
+    	<label id="bearingCdSumlbl" style="display: inline-block; font-size: 30px;font-weight: bold; padding-right: 10px; color: red;"></label>	
+    	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp	
+        
+    	<label for="inputBox" style="display: inline-block; font-weight: bold; padding-right: 10px;">Enter No. of Breaks:</label>	
+    	<input type="text" name="bearingCds" id="bearingCds" placeholder="Enter code here..." onfocusout="createBreaks()"/>
+    	<label for="inputBox" id="nonZeroCnt" style="display: inline-block; font-size: 20px; font-weight: bold; padding-right: 10px;">({{ nonZeroCdCnt }})</label>
+    	
+    	<button type="submit" name="create_breaks" id="create_breaks" onclick="location.href='{% url 'create_breaks' %}'">Create Breaks</button>
+    	<!-- <button type="submit" name="download_break_file" id="download_break_file" onclick="location.href='{% url 'download_break_file' %}'">Download Break File</button> -->
+		<button type="submit" name="download_break_file" id="download_break_file" onclick = "onClickFill('dwnBrkFile')">Download Break File</button>
+    	
+    	&nbsp;&nbsp
+    	<!-- <label for="inputBox" style="display: inline-block; font-weight: bold; padding-right: 10px;">Maximum Breaks Can be Created:</label> -->	
+    	
+    	<!-- <button type="submit" name="delete_all_data" onclick="location.href='{% url 'delete_all_data' %}'">Delete All Data</button>-->
+		<!-- <button type="submit" name="download_all_data" onclick="location.href='{% url 'download_all_data' %}'">Download All Data</button>-->
+
+		<button type="submit" id="delete_all_data" name="delete_all_data" onclick = "onClickFill('delAllDatacd')">Delete All Data</button>
+		<button type="submit" id="delete_all_data" name="download_all_data" onclick = "onClickFill('dwnAllData')">Download All Data</button>
+
+		<br><br>
+
+		<button type="submit" id="pauseRefresh" name="pauseRefresh" onclick = "onClickFill('pauseRefresh')">Pause Refresh</button>
+		<label for="inputBox" style="margin-left: 10px; display: inline-block; font-weight: bold; padding-right: 10px;">120:</label>
+    	<input type="text" size="6" name="oneTwoZeroSplit" id="oneTwoZeroSplit" placeholder="Enter split number..." onfocusout="onTabOutListner()"/>
+
+		<label for="inputBox" style="margin-left: 10px; display: inline-block; font-weight: bold; padding-right: 10px;">90:</label>
+    	<input type="text" size="6" name="ninetySplit" id="ninetySplit" placeholder="Enter split number..." onfocusout="onTabOutListner()"/>
+
+    	<label for="inputBox" style="margin-left: 10px; display: inline-block; font-weight: bold; padding-right: 10px;">10:</label>
+    	<input type="text" size="6" name="tenSplit" id="tenSplit" placeholder="Enter split number..." onfocusout="onTabOutListner()"/>
+
+		<label for="inputBox" style="margin-left: 10px; display: inline-block; font-weight: bold; padding-right: 10px;">cCat:</label>
+    	<input type="text" size="3" name="cCat" id="cCat" placeholder="Enter split number..." onfocusout="onTabOutListner()"/>
+		
+		<button type="submit" id="move_data" name="move_data" disabled style="margin-left: 10px;" onclick = "onClickFill('moveData')">Move Data</button>
+
+		<br><br>
+		
+		<input type="hidden" name="insCode" id="insCode"></input>
+		<input type="hidden" name="enableRefresh" id="enableRefresh"></input>
+		<input type="hidden" name="usrLgn" id="usrLgn"></input>
+    	
+    	</form>
+    
+    <!--<h1>Entry List</h1> -->
+    
+        <label style="display: inline-block; font-weight: bold; font-size: 30px; padding-right: 10px;">Total:</label>
+        <label style="display: inline-block; font-weight: bold; font-size: 30px; color: blue; padding-right: 10px;">{{ sideTotal.allTotal }}</label>
+    	
+        <table id="adminTable">
+            <thead>
+        
+                <tr>
+                        <td><b>1</b></td>
+                        <td><b>2</b></td>
+                        <td><b>3</b></td>
+                        <td><b>4</b></td>
+                        <td><b>5</b></td>
+                        <td><b>6</b></td>
+                        <td><b>7</b></td>
+                        <td><b>8</b></td>
+                        <td><b>9</b></td>                  
+                        <td><b>0</b></td>
+                        <td><b>Total</b></td>
+                </tr>
+
+				<tr>
+                    {% for k,v in cCatItems.items %}
+						{% if forloop.counter == 1 %}                    
+                            <td><b>A >>> ({{ v }})</b></td>
+						{% else %}
+							<td><b>({{ v }})</b></td>
+						{% endif %}						
+                    {% endfor %} 
+					<td><b>({{ cCatTotal }})</b></td>              
+                </tr>
+
+				<tr>
+                    {% for k,v in catDictTotal.items %}                    
+						{% if forloop.counter == 1 %}                 
+                            <td><b>P >>> ({{ v }})</b></td>
+						{% else %}
+							<td><b>({{ v }})</b></td>
+						{% endif %}						
+                    {% endfor %}                
+                </tr>				
+                
+            </thead>
+            <tbody>        
+                
+                
+                {% for row in table_data %}
+                    <tr>
+                        {% for key, value in row %}
+                            <td>{{ key }}= {{ value }}</td>                        
+                        {% endfor %}
+                     
+                    {% if forloop.counter == 1 %}                
+                        <td rowspan="12"> {{ sideTotal.oneTwenty }} </td>
+                    {% elif forloop.counter == 13 %}
+                        <td rowspan="9"> {{ sideTotal.ninety }} </td>
+                    {% elif forloop.counter == 22 %}
+                        <td rowspan="1"> {{ sideTotal.ten }} </td>
+                    {% endif %}
+                    
+                    </tr>
+                                 
+                {% endfor %}            
+                
+            </tbody>        
+            
+            
+        </table>
+    
+    </body>
+    
+</html>
+
+<script>
+
+	  setInterval(function(){
+		changeButtonCaption()
+		}, 30000)
+		
+	  function changeButtonCaption() {	
+
+            const button = document.getElementById('pauseRefresh');			
+            if (document.getElementById('enableRefresh').value.trim() == '' &&
+				document.getElementById('pauseRefresh').textContent === 'Pause Refresh') {				
+				//console.log('default refresh')
+				location.reload(); // Reload the page							
+            }
+			else if (document.getElementById('enableRefresh').value.trim() == 'N' && 
+			         document.getElementById('pauseRefresh').textContent === 'Pause Refresh') {
+				//console.log('changeButtonCaption2')
+				setInterval(function() {
+						location.reload(); // Reload the page
+						}, 28800000); //8 hours seconds			
+				button.textContent = 'Re-enable Refresh'; // Change the button caption
+				
+            }
+			else if (document.getElementById('enableRefresh').value.trim() == 'N' && 
+			         document.getElementById('pauseRefresh').textContent === 'Pause Refresh') {
+				//console.log('inside else condition')
+				setInterval(function() {
+						location.reload(); // Reload the page
+						}, 30000); //30 seconds
+			}      
+		}
+
+	  function onTabOutListner (){
+			if (document.getElementById('oneTwoZeroSplit').value.trim() !== '' ||
+				document.getElementById('ninetySplit').value.trim() !== '' ||
+				document.getElementById('tenSplit').value.trim() !== '' ||
+				document.getElementById('cCat').value.trim() !== '') 
+			{ 
+				document.getElementById('move_data').disabled = false;
+			}
+			else
+			{ 
+				document.getElementById('move_data').disabled = true;
+			}
+		}
+
+	  document.getElementById('pauseRefresh').addEventListener('click', function (e) {
+		e.preventDefault();
+		if (document.getElementById('pauseRefresh').textContent === 'Pause Refresh') {
+			document.getElementById('enableRefresh').value = 'N';
+		}
+		else if (document.getElementById('pauseRefresh').textContent === 'Re-enable Refresh') {
+			document.getElementById('enableRefresh').value = '';
+			document.getElementById('pauseRefresh').textContent = 'Pause Refresh';
+		}
+		
+		changeButtonCaption();
+	  });
+
+      document.getElementById('bearingCds').addEventListener('input', function(event) {
+            this.value = this.value.replace(/[^0-9,]/g, ''); // Remove characters other than numbers and commas
+        });
+	
+	  document.getElementById('bearingCd').addEventListener('input', function(event) {
+            this.value = this.value.replace(/[^0-9,]/g, ''); // Remove characters other than numbers and commas
+        });
+
+	  document.getElementById('oneTwoZeroSplit').addEventListener('input', function(event) {		
+            this.value = this.value.replace(/[^0-9,]/g, ''); // Remove characters other than numbers and commas
+        });
+
+	  document.getElementById('ninetySplit').addEventListener('input', function(event) {		
+            this.value = this.value.replace(/[^0-9,]/g, ''); // Remove characters other than numbers and commas
+        });
+
+	  document.getElementById('tenSplit').addEventListener('input', function(event) {		
+            this.value = this.value.replace(/[^0-9,]/g, ''); // Remove characters other than numbers and commas
+        });
+
+	  document.getElementById('cCat').addEventListener('input', function(event) {
+			this.value = this.value.replace(/[^0-9,]/g, ''); // Remove characters other than numbers and commas
+        });
+
+	  function highlightTable() {	      
+	      pyDicts = JSON.parse('{{usrAdminDict|escapejs}}');
+	      	      
+		  var input, filter, table, tr, td, i, j;
+		  input = document.getElementById("bearingCd");
+		  filter = input.value;			  
+		  
+		  //console.log(document.getElementById("bearingCdSumlbl").value);
+		  if (document.getElementById("bearingCdSumlbl").text !== 'undefined' || document.getElementById("bearingCdSumlbl").text !== null) {
+		      document.getElementById("bearingCdSumlbl").textContent = '('+pyDicts[filter]+')';
+		      }
+		  
+		  table = document.getElementById("adminTable");
+		  tr = table.getElementsByTagName("tr");
+		  for (i = 1; i < tr.length; i++) { // Start from 1 to skip header row			
+			td = tr[i].getElementsByTagName("td");
+			
+			
+			for (j = 0; j < td.length; j++) {
+			  if (td[j]) {
+				//if (td[j].innerHTML.toUpperCase().indexOf(filter) > -1) {    			  
+    			  
+				  if (td[j].innerHTML.split('=')[0].replace("<","").trim() === filter.trim()) {				     
+					 td[j].style.animation = "blink 5s linear infinite";			  
+				  break;
+				} else {
+					 td[j].style.animation = "none"; // Remove animation
+				  }
+				}
+			  }
+			}			
+			
+	  }
+	  
+	  function createBreaks() {
+		document.getElementById('insCode').value = "createBreaks";
+		
+    	document.getElementById('create_breaks').disabled = false;
+    	  
+    	var brCds = document.getElementById("bearingCds").value;
+    	var nonZeroCnt = {{nonZeroCdCnt}}
+    	var cdSum = 0;
+    	  
+        ipBrCd = brCds.split(",");
+    	  
+    	for (cnt=0; cnt < ipBrCd.length; cnt++) {
+			cdSum += parseInt(ipBrCd[cnt]);
+    	}
+    	  
+    	if (cdSum >   nonZeroCnt) {
+			document.getElementById('create_breaks').disabled = true;  
+    	}
+    	  	  
+	  }
+     
+
+	  function onClickFill (nameShow){
+		if (nameShow === 'delAllDatacd') {
+			if (confirm('Are you sure?')) {
+				//action confirmed
+				console.log('Ok is clicked.');
+				openLoginDialog()
+				//document.getElementById('insCode').value = nameShow;
+			} else {
+				//action cancelled
+				console.log('Cancel is clicked.');
+			}
+		}
+
+		else if (nameShow === 'dwnBrkFile') {
+			document.getElementById('insCode').value = nameShow;
+		}
+
+		else if (nameShow === 'dwnAllData') {
+			document.getElementById('insCode').value = nameShow;
+		}
+
+		else if (nameShow === 'moveData') {			
+			document.getElementById('insCode').value = nameShow;
+			//document.getElementById('oneTwoZeroSplit').value = "";
+			//document.getElementById('oneTwenty').value = "";
+			//document.getElementById('tenSplit').value = "";
+
+
+		}
+		
+	  }	  
+
+	  function openLoginDialog() {
+
+			var loginDialog = document.createElement('div');
+            loginDialog.style.position = 'fixed';
+            loginDialog.style.top = '50%';
+            loginDialog.style.left = '50%';
+            loginDialog.style.transform = 'translate(-50%, -50%)';
+            loginDialog.style.backgroundColor = '#fff';
+            loginDialog.style.padding = '20px';
+            loginDialog.style.boxShadow = '0px 0px 10px rgba(0, 0, 0, 0.1)';
+            loginDialog.style.zIndex = '1000';
+
+            var userIdLabel = document.createElement('label');
+            userIdLabel.innerHTML = 'User ID: ';
+            var userIdInput = document.createElement('input');
+            userIdInput.type = 'text';
+            userIdInput.id = 'user-id';
+
+            var passwordLabel = document.createElement('label');
+            passwordLabel.innerHTML = 'Password: ';
+            var passwordInput = document.createElement('input');
+            passwordInput.type = 'password';
+            passwordInput.id = 'password';
+
+            var okButton = document.createElement('button');
+            okButton.innerHTML = 'OK';
+            okButton.onclick = function() {
+                var userId = userIdInput.value;
+                var password = passwordInput.value;
+
+                if (userId && password) {
+                    sendLoginRequest(userId, password);
+                } else {
+                    alert('Please enter both user ID and password');
+                }
+
+                document.body.removeChild(loginDialog); // Close dialog
+            };
+
+            var cancelButton = document.createElement('button');
+            cancelButton.innerHTML = 'Cancel';
+            cancelButton.onclick = function() {
+                document.body.removeChild(loginDialog); // Close dialog
+            };
+
+            loginDialog.appendChild(userIdLabel);
+            loginDialog.appendChild(userIdInput);
+            loginDialog.appendChild(document.createElement('br'));
+            loginDialog.appendChild(passwordLabel);
+            loginDialog.appendChild(passwordInput);
+            loginDialog.appendChild(document.createElement('br'));
+            loginDialog.appendChild(okButton);
+            loginDialog.appendChild(cancelButton);
+
+            document.body.appendChild(loginDialog);
+        }
+
+        function sendLoginRequest(userId, password) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/login', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    var response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        alert('Login successful');
+                        // Optionally redirect to another page
+                        // window.location.href = '/dashboard';
+                    } else {
+                        alert('Invalid user ID or password');
+                    }
+                }
+            };
+            xhr.send(JSON.stringify({ user_id: userId, password: password }));
+        }
+
+</script>
