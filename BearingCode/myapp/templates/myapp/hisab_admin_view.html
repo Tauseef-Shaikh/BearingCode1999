@@ -62,11 +62,9 @@
 
 		<label for="inputBox" style="display: inline-block; font-weight: bold; padding-right: 10px;">Show Top:</label>	
     	<input type="text" name="showTopValues" id="showTopValues" placeholder="Enter here..." onfocusout="showTopValues()"/>
-		<button type="submit" name="download_all_data" onclick = "onClickFill('showTop')">Download All Data</button>
+		<!-- <button type="submit" name="download_all_data" onclick = "onClickFill('showTop')">Download All Data</button> -->
     	
     	</form>
-    
-    <!--<h1>Entry List</h1> -->
     
         <label style="display: inline-block; font-weight: bold; font-size: 30px; padding-right: 10px;">Total:</label>
         <label style="display: inline-block; font-weight: bold; font-size: 30px; color: blue; padding-right: 10px;">{{ sideTotalSpr.allTotal }}</label>
@@ -89,18 +87,18 @@
                 </tr>
 
 				<tr>
-                    {% for k,v in cCatItemsSpr.items %}
+                    {% for k,v in cCatItemsHsb.items %}
 						{% if forloop.counter == 1 %}                    
                             <td><b>A >>> ({{ v }})</b></td>
 						{% else %}
 							<td><b>({{ v }})</b></td>
 						{% endif %}						
                     {% endfor %} 
-					<td><b>({{ cCatTotalSpr }})</b></td>              
+					<td><b>({{ cCatTotalHsb }})</b></td>              
                 </tr>
 
 				<tr>
-                    {% for k,v in catDictTotalSpr.items %}                    
+                    {% for k,v in catDictTotalHsb.items %}                    
 						{% if forloop.counter == 1 %}                 
                             <td><b>P >>> ({{ v }})</b></td>
 						{% else %}
@@ -120,11 +118,11 @@
                         {% endfor %}
                      
                     {% if forloop.counter == 1 %}                
-                        <td rowspan="12"> {{ sideTotalSpr.oneTwenty }} </td>
+                        <td rowspan="12"> {{ sideTotalHsb.oneTwenty }} </td>
                     {% elif forloop.counter == 13 %}
-                        <td rowspan="9"> {{ sideTotalSpr.ninety }} </td>
+                        <td rowspan="9"> {{ sideTotalHsb.ninety }} </td>
                     {% elif forloop.counter == 22 %}
-                        <td rowspan="1"> {{ sideTotalSpr.ten }} </td>
+                        <td rowspan="1"> {{ sideTotalHsb.ten }} </td>
                     {% endif %}
                     
                     </tr>
@@ -142,52 +140,38 @@
 
 <script>
 
-      document.getElementById('bearingCds').addEventListener('input', function(event) {
-            this.value = this.value.replace(/[^0-9,]/g, ''); // Remove characters other than numbers and commas
-        });
+	 function onClickFill (nameShow){
 
-	  function highlightTable() {	      
-	      pyDicts = JSON.parse('{{usrAdminDict|escapejs}}');
-	      	      
-		  var input, filter, table, tr, td, i, j;
-		  input = document.getElementById("bearingCd");
-		  filter = input.value;			  
-		  
-		  //console.log(document.getElementById("bearingCdSumlbl").value);
-		  if (document.getElementById("bearingCdSumlbl").text !== 'undefined' || document.getElementById("bearingCdSumlbl").text !== null) {
-		      document.getElementById("bearingCdSumlbl").textContent = '('+pyDicts[filter]+')';
-		      }
-		  
-		  table = document.getElementById("adminTable");
-		  tr = table.getElementsByTagName("tr");
-		  for (i = 1; i < tr.length; i++) { // Start from 1 to skip header row			
-			td = tr[i].getElementsByTagName("td");
-			
-			
-			for (j = 0; j < td.length; j++) {
-			  if (td[j]) {
-				//if (td[j].innerHTML.toUpperCase().indexOf(filter) > -1) {    			  
-    			  
-				  if (td[j].innerHTML.split('=')[0].replace("<","").trim() === filter.trim()) {				     
-					 td[j].style.animation = "blink 5s linear infinite";			  
-				  break;
-				} else {
-					 td[j].style.animation = "none"; // Remove animation
-				  }
-				}
-			  }
-			}			
-			
-	  }
+		if (nameShow === 'delAllDatacd') {
+			if (confirm('Are you sure?')) {
+				//action confirmed
+				console.log('Ok is clicked.');
+				document.getElementById('insCode').value = nameShow;
+				document.getElementById('usrLgn').value = document.querySelector('#usrId a').textContent;
 
-	  function onClickFill (nameShow){
-		console.log('before');
-		 if (nameShow === 'showTop') {
-			console.log('after');
+				//action cancelled
+				console.log('Cancel is clicked.');
+			}
+		}
+
+		else if (nameShow === 'dwnBrkFile') {
+			document.getElementById('insCode').value = nameShow;
+		}
+
+		else if (nameShow === 'dwnAllData') {
 			document.getElementById('insCode').value = nameShow;
 			document.getElementById('usrLgn').value = document.querySelector('#usrId a').textContent;
-		}	
+		}
+
+		else if (nameShow === 'moveData') {			
+			document.getElementById('insCode').value = nameShow;
+			//document.getElementById('oneTwoZeroSplit').value = "";
+			//document.getElementById('oneTwenty').value = "";
+			//document.getElementById('tenSplit').value = "";
+
+
+		}
 		
-	  }	 
+	  }	   
 
 </script>

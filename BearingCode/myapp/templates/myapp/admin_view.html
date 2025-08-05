@@ -51,7 +51,8 @@
     
         <form method="post">
         {% csrf_token %}
-                
+
+		<p id="usrId"> Login Name: <a href="#" > {{ request.user.username }} <p></a>                
         <label for="inputBox" style="display: inline-block; font-weight: bold; padding-right: 10px;">Search Bearing Code:</label>	
     	<input type="text" name="bearingCd" id="bearingCd"  size="3" placeholder="Enter code here..." onfocusout="highlightTable()"/>
     	&nbsp;&nbsp;	
@@ -314,13 +315,14 @@
      
 
 	  function onClickFill (nameShow){
+
 		if (nameShow === 'delAllDatacd') {
 			if (confirm('Are you sure?')) {
 				//action confirmed
 				console.log('Ok is clicked.');
-				openLoginDialog()
-				//document.getElementById('insCode').value = nameShow;
-			} else {
+				document.getElementById('insCode').value = nameShow;
+				document.getElementById('usrLgn').value = document.querySelector('#usrId a').textContent;
+
 				//action cancelled
 				console.log('Cancel is clicked.');
 			}
