@@ -836,8 +836,13 @@ def hisab_admin_view(request):
         return redirect('%s?next=%s' % (settings.LOGIN_URL, request.path))  
     
     if request.method == 'POST':
-        if 'hisab' in request.POST['usrLgn'] and request.POST['insCode'] == 'showTop':
-            print('pass')
+            
+            if 'delete_all_data' in request.POST and request.POST['insCode'] == 'delAllDatacd':
+                retRes = delete_all_data(request)
+                return (retRes)
+            elif 'download_all_data' in request.POST and request.POST['insCode'] == 'dwnAllData':
+                retRes = download_all_data(request)        
+                return (retRes)
 
     rowVal = request.POST.getlist('rowVal')
     
@@ -849,10 +854,10 @@ def hisab_admin_view(request):
         if v > 0:            
             nonZeroCdCnt = nonZeroCdCnt + 1
 
-    cCatTotalSpr = 0
-    cCatTotalSpr = sum(cCatItemsSpr.values())
+    cCatTotalHsb = 0
+    cCatTotalHsb = sum(cCatItemsHsb.values())
         
-    context = {'table_data_spr': table_data_spr, 'hisabAdminDict': json.dumps(hisabAdminDict), 'categoryDict': categoryDict, 'catDictTotalSpr':catDictTotalSpr, 'sideTotalSpr': sideTotalSpr, 'nonZeroCdCnt': nonZeroCdCnt, 'cCatItemsSpr': cCatItemsSpr, 'cCatTotalSpr': cCatTotalSpr}
+    context = {'table_data_spr': table_data_spr, 'hisabAdminDict': json.dumps(hisabAdminDict), 'categoryDict': categoryDict, 'catDictTotalHsb':catDictTotalHsb, 'sideTotalHsb': sideTotalHsb, 'nonZeroCdCnt': nonZeroCdCnt, 'cCatItemsHsb': cCatItemsHsb, 'cCatTotalHsb': cCatTotalHsb}
     print ('before render....')
     return render(request, 'myapp/hisab_admin_view.html', context) 
 
@@ -935,12 +940,28 @@ def create_breaks(request):
     #return HttpResponse("All values are now cleared!")
 
 def download_all_data(request):
-
+    print ('inside --> download_all_data')
     with open(__package__+'/downloadall/Bearing_Code_All.csv', 'w') as csvfile:
         iCnt = 0
         ltWrt = ''
         
-        if 'super' not in request.POST['usrLgn']:
+        if 'hisab' in request.POST['usrLgn']:
+            print('yahooooo ---->', hisabAdminDict)
+            for iK, iV in hisabAdminDict.items():
+                if iCnt == 0:
+                    ltWrt += iK + "="+ str(iV)
+                    iCnt += 1
+                elif iCnt <=8:
+                    ltWrt += ',' + iK + "="+ str(iV)
+                    iCnt += 1
+                elif iCnt == 9:
+                    ltWrt += ',' + iK + "="+ str(iV)
+                    csvfile.write(ltWrt)
+                    csvfile.write('\n')
+                    iCnt = 0
+                    ltWrt = ''
+
+        elif 'super' not in request.POST['usrLgn']:
             for iK, iV in usrAdminDict.items():
                 if iCnt == 0:
                     ltWrt += iK + "="+ str(iV)
@@ -1003,24 +1024,28 @@ def delete_all_data(request):
     for k, v in usrAdminDict.items():
         if 'super' not in request.POST['usrLgn']:
             usrAdminDict[k]=0
+            hisabAdminDict[k]=0
         elif 'super' in request.POST['usrLgn']:
             sprAdminDict[k]=0
         
     for k, v in catDictTotal.items():
         if 'super' not in request.POST['usrLgn']:
-            catDictTotal[k]=0
+            catDictTotal[k]=0      
+            catDictTotalHsb[k]=0
         elif 'super' in request.POST['usrLgn']:
-            catDictTotalSpr[k]=0        
+            catDictTotalSpr[k]=0      
         
     for k,v in sideTotal.items():        
         if 'super' not in request.POST['usrLgn']:
             sideTotal[k]=0
+            sideTotalHsb[k]=0
         elif 'super' in request.POST['usrLgn']:
             sideTotalSpr[k]=0
 
     for k,v in cCatItems.items():
         if 'super' not in request.POST['usrLgn']:
             cCatItems[k]=0
+            cCatItemsHsb[k]=0
         elif 'super' in request.POST['usrLgn']:
             cCatItemsSpr[k]=0
 
@@ -1070,33 +1095,36 @@ def move_data(request):
     if oneTwentyInp != '':
         oneTwentyInp = round(float(oneTwentyInp),2)        
         for k in oneTwentyList:
-            if usrAdminDict[k] > oneTwentyInp:                
+            if usrAdminDict[k] >= oneTwentyInp:                
                 usrAdminDict[k] -= oneTwentyInp
+                sideTotal['oneTwenty'] -= oneTwentyInp
                 sprAdminDict[k] += oneTwentyInp
                 sideTotalSpr['oneTwenty'] += oneTwentyInp
-                sideTotal['oneTwenty'] -= oneTwentyInp
+            
 
     if ninetyInp != '':
         ninetyInp = round(float(ninetyInp),2)
         for k in ninetyList:
-            if usrAdminDict[k] > ninetyInp:
+            if usrAdminDict[k] >= ninetyInp:
                 usrAdminDict[k] -= ninetyInp
+                sideTotal['ninety'] -= ninetyInp              
                 sprAdminDict[k] += ninetyInp
                 sideTotalSpr['ninety'] += ninetyInp
-                sideTotal['ninety'] -= ninetyInp                    
+            
 
     if tenInp != '':
         tenInp = round(float(tenInp),2)        
         for k in tenList:
-            if usrAdminDict[k] > tenInp:
+            if usrAdminDict[k] >= tenInp:
                 usrAdminDict[k] -= tenInp
+                sideTotal['ten'] -= tenInp
                 sprAdminDict[k] += tenInp
                 sideTotalSpr['ten'] += tenInp
-                sideTotal['ten'] -= tenInp
+                          
                 
     if cCatInp != '':  
         print('inside cCatInp')     
-        cCatItemsSpr.update((key, 0) for key in cCatItemsSpr)
+        #cCatItemsSpr.update((key, 0) for key in cCatItemsSpr)
         cCatInp = round(float(cCatInp),2)  
         for k, v in cCatItems.items():
             if v >= cCatInp:            
@@ -1118,13 +1146,27 @@ def move_data(request):
     return redirect('admin_view')   
 
 def move_final_data(request):
-    global sprAdminDict
-    global defaultCodeDictSpr
-    global hisabAdminDict
+    global sprAdminDict, defaultCodeDictSpr, hisabAdminDict
+    global sideTotalHsb, sideTotalSpr
+    global cCatItemsHsb, cCatItemsSpr
+    global catDictTotalHsb, catDictTotalSpr
+
     hisabAdminDict = dict(sprAdminDict)
-    print(hisabAdminDict)
+    sideTotalHsb = dict(sideTotalSpr)
+    cCatItemsHsb = dict(cCatItemsSpr)
+    catDictTotalHsb = dict(catDictTotalSpr)
+
+    print(sideTotalSpr)
+
+    sprAdminDict = {tmpKey: 0 for tmpKey in sprAdminDict}
+    sideTotalSpr = {tmpKey: 0 for tmpKey in sideTotalSpr}
+    cCatItemsSpr = {tmpKey: 0 for tmpKey in cCatItemsSpr}
+    catDictTotalSpr = {tmpKey: 0 for tmpKey in catDictTotalSpr}
+
+    '''
     for k, v in sprAdminDict.items():
         sprAdminDict[k] = 0
+    '''
     return redirect('super_admin_view')
 
 defaultCodeDict = {'128': 0, '129': 0, '120': 0, '130': 0, '140': 0, '123': 0, '124': 0, '125': 0, '126': 0, '127': 0,
@@ -1383,15 +1425,22 @@ usrDict = {}
 usrAdminDict = {}
 sprAdminDict = {}
 hisabAdminDict = {}
+
 cCatItems = {'1':0,'2':0,'3':0,'4':0,'5':0,'6':0,'7':0,'8':0,'9':0,'0':0}
 cCatItemsSpr = {'1':0,'2':0,'3':0,'4':0,'5':0,'6':0,'7':0,'8':0,'9':0,'0':0}
+cCatItemsHsb = {'1':0,'2':0,'3':0,'4':0,'5':0,'6':0,'7':0,'8':0,'9':0,'0':0}
+
 usrAdminDict = defaultCodeDict
 sprAdminDict = defaultCodeDictSpr
 hisabAdminDict = defaultCodeDictHisab
+
 catDictTotal = {'1':0,'2':0,'3':0,'4':0,'5':0,'6':0,'7':0,'8':0,'9':0,'0':0}
 catDictTotalSpr = {'1':0,'2':0,'3':0,'4':0,'5':0,'6':0,'7':0,'8':0,'9':0,'0':0}
+catDictTotalHsb = {'1':0,'2':0,'3':0,'4':0,'5':0,'6':0,'7':0,'8':0,'9':0,'0':0}
+
 sideTotal = {'oneTwenty':0,'ninety':0,'ten':0,'allTotal':0}
 sideTotalSpr = {'oneTwenty':0,'ninety':0,'ten':0,'allTotal':0}
+sideTotalHsb = {'oneTwenty':0,'ninety':0,'ten':0,'allTotal':0}
 
 with open (__package__+'/data/grpEntry.csv','w') as cf:
     cf.write('GrpEntry,BearingType,SubType,Code,Quantity,DateTime,LastAmt,EntryNo')
